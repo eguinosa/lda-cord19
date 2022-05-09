@@ -187,22 +187,6 @@ class Papers:
             yield self.paper_full_text(cord_uid)
 
 
-def _number_to_3digits(number):
-    """
-    Transform a number smaller than 1000 (0-999) to a string representation with
-    three characters (000, 001, ..., 021, ..., 089, ..., 123, ..., 999).
-    """
-    # Make sure the value we transform is under 1000 and is positive.
-    mod_number = number % 1000
-    
-    if mod_number < 10:
-        return "00" + str(mod_number)
-    elif mod_number < 100:
-        return "0" + str(mod_number)
-    else:
-        return str(mod_number)
-
-
 # Testing the Papers class
 if __name__ == '__main__':
     # Record the Runtime of the Program
