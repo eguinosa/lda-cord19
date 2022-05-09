@@ -2,6 +2,9 @@
 # Project Virtual Environment
 venv-lda-cord19/
 
+# CORD-19 Documents, Embeddings and Data files
+cord19_data/
+
 # MacOS File System
 .DS_Store
 
