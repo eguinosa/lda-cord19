@@ -1,9 +1,11 @@
 
 # Project Virtual Environment
 venv-lda-cord19/
-
 # CORD-19 Documents, Embeddings and Data files
 cord19_data/
+# Project Data & Testing files:
+project_data/
+output.txt
 
 # MacOS File System
 .DS_Store
