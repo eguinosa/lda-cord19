@@ -15,7 +15,7 @@ class PapersAnalyzer:
     and return subsets of the papers by these characteristics when required.
     """
     # Class Data Locations
-    project_data_folder = 'project_data'
+    data_folder = 'project_data'
     small_papers_index = 'small_papers_index.json'
     medium_papers_index = 'medium_papers_index.json'
     big_papers_index = 'big_papers_index.json'
@@ -28,9 +28,9 @@ class PapersAnalyzer:
         # one if it doesn't exist.
         
         # Create the paths for the indexes of the new paper groups.
-        small_papers_path = join(self.project_data_folder, self.small_papers_index)
-        medium_papers_path = join(self.project_data_folder, self.medium_papers_index)
-        big_papers_path = join(self.project_data_folder, self.big_papers_index)
+        small_papers_path = join(self.data_folder, self.small_papers_index)
+        medium_papers_path = join(self.data_folder, self.medium_papers_index)
+        big_papers_path = join(self.data_folder, self.big_papers_index)
         
         # Check if the indexes for the small, medium, big papers were already
         # created.
