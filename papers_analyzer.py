@@ -18,7 +18,7 @@ class PapersAnalyzer:
     project_data_folder = 'project_data'
     small_papers_index = 'small_papers_index.json'
     medium_papers_index = 'medium_papers_index.json'
-    big_papers_index = 'big_papers_index'
+    big_papers_index = 'big_papers_index.json'
 
     def __init__(self):
         # Get the CORD-19 papers.
