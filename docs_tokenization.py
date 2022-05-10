@@ -16,10 +16,8 @@ def lazy_corpus_tokenization(documents):
     :return: The sequence of the tokens of the documents in the corpus in a lazy
     fashion.
     """
-    # Tokenization of the corpus:
-    # Loading the English Package
+    # Get the Spacy NLP Model.
     nlp = spacy.load('en_core_web_md')
-
     # Changing the infixes to accept words with hyphens (-), like 'covid-19'
     infixes = (
             LIST_ELLIPSES
@@ -51,6 +49,51 @@ def lazy_corpus_tokenization(documents):
                        or (not token.is_alpha and is_acceptable(token.text)))]
         # Returns one tokenized document at a time.
         yield text_tokens
+
+
+def documents_tokenization(document, nlp=None):
+    """
+    Tokenize the document, removing all the stop words, punctuation symbols and numbers in the
+    documents. Also, lowercase and lemmatize each token.
+
+    :document: A string representing the text we want to tokenize.
+    :nlp: Natural Language Processing Model to use for the tokenization.
+    :return: A list of strings, with the tokes of the document.
+    """
+    # If the NLP Model wasn't provided, get the Spacy NLP Model
+    if not nlp:
+        # 2nd biggest English Package
+        nlp = spacy.load('en_core_web_md')
+        # Change the infixes to accept words with hyphens (-), like 'covid-19'
+        infixes = (
+                LIST_ELLIPSES
+                + LIST_ICONS
+                + [
+                    r"(?<=[0-9])[+\-\*^](?=[0-9-])",
+                    r"(?<=[{al}{q}])\.(?=[{au}{q}])".format(
+                        al=ALPHA_LOWER, au=ALPHA_UPPER, q=CONCAT_QUOTES
+                    ),
+                    r"(?<=[{a}]),(?=[{a}])".format(a=ALPHA),
+                    # r"(?<=[{a}])(?:{h})(?=[{a}])".format(a=ALPHA, h=HYPHENS),
+                    r"(?<=[{a}0-9])[:<>=/](?=[{a}])".format(a=ALPHA),
+                ]
+        )
+        infix_re = compile_infix_regex(infixes)
+        nlp.tokenizer.infix_finditer = infix_re.finditer
+
+    # Disable 'ner' and 'textcat' for faster processing
+    text_doc = nlp(document, disable=['ner', 'texcat'])
+
+    # Lemmatize the tokens, lower the characters, and take only the tokens
+    # with at least one alphabetic character. (food, covid-19, R2, etc..)
+    text_tokens = [token.lemma_.lower().strip()
+                   for token in text_doc
+                   if len(token.text) > 1
+                   and ((token.is_alpha and not token.is_stop)
+                        or (not token.is_alpha and is_acceptable(token.text)))]
+
+    # Returns one tokenized document at a time.
+    return text_tokens
 
 
 def is_acceptable(text):
