@@ -6,6 +6,9 @@ from os.path import isdir, isfile, join
 from gensim.models import Phrases
 
 from docs_tokenization import lazy_corpus_tokenization
+# For Testing
+from time_keeper import TimeKeeper
+from papers_analyzer import PapersAnalyzer, big_number
 
 
 class CorpusTokenizer:
@@ -145,7 +148,7 @@ class CorpusTokenizer:
     @classmethod
     def are_tokens_saved(cls):
         """
-        Check if the tokens from a previos tokenizer are saved and ready to
+        Check if the tokens from a previous tokenizer are saved and ready to
         be used.
         :return: Bool representing if we have the tokens or the corpus saved or
         not.
@@ -161,8 +164,8 @@ class CorpusTokenizer:
         # Open the index file, and check there is information available.
         with open(index_path, 'r') as file:
             tokens_info = json.load(file)
-        # Check if token_info has null values or is empty.
-        if not tokens_info or not len(tokens_info) or not isdir(tokens_info):
+        # Check if token_info is None, if it's empty or has no values.
+        if not tokens_info or not isinstance(tokens_info, dict) or not len(tokens_info):
             return False
         # The Tokenization Index is ready and available.
         return True
@@ -175,3 +178,39 @@ class CorpusTokenizer:
         :return: A CorpusTokenizer
         """
         return cls(None, _use_saved=True)
+
+
+# Test the Class
+if __name__ == '__main__':
+    # Record the Runtime of the Program.
+    stopwatch = TimeKeeper()
+
+    print("\nGetting the papers organized...")
+    sorted_papers = PapersAnalyzer()
+    print("Done.")
+    print(f"[{stopwatch.formatted_runtime()}]")
+
+    # Reporting the amount of Papers available.
+    small_count = len(sorted_papers.small_papers)
+    medium_count = len(sorted_papers.medium_papers)
+    big_count = len(sorted_papers.big_papers)
+    total_count = small_count + medium_count + big_count
+    print(f"\nThe total amount of Papers is: {big_number(total_count)}")
+    print(f"The amount of Small Papers is: {big_number(small_count)}")
+    print(f"The amount of Medium Papers is: {big_number(medium_count)}")
+    print(f"The amount of Big Papers is: {big_number(big_count)}")
+
+    # Tokenize the Documents:.
+    print("\nTokenizing the documents...")
+    # Get the documents (5 in this case):
+    papers_text = sorted_papers.big_papers_content(5)
+    # Load the CorpusTokenizer, if it was saved.
+    if CorpusTokenizer.are_tokens_saved():
+        print("Loading the saved tokenized documents.")
+        tokenizer = CorpusTokenizer.saved_tokenizer()
+    # Create the corpus tokenizer, if it can't be loaded.
+    else:
+        print("Tokenizing the documents from scratch.")
+        tokenizer = CorpusTokenizer(papers_text)
+    print("Done. ")
+    print(f"[{stopwatch.formatted_runtime()}]")
