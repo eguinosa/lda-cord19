@@ -22,7 +22,7 @@ class Papers:
     metadata_file = 'metadata.csv'
 
     # Project Data Location
-    project_data_folder = 'project_data'
+    data_folder = 'project_data'
     papers_index_file = 'papers_index.json'
 
     def __init__(self):
@@ -31,10 +31,10 @@ class Papers:
         the current CORD-19 dataset and save all the information of interest.
         """
         # Create a data folder if it doesn't exist.
-        if not isdir(self.project_data_folder):
-            mkdir(self.project_data_folder)
+        if not isdir(self.data_folder):
+            mkdir(self.data_folder)
         # Form the papers index path.
-        papers_index_path = join(self.project_data_folder, self.papers_index_file)
+        papers_index_path = join(self.data_folder, self.papers_index_file)
         # Check if the papers' index exists or not.
         if isfile(papers_index_path):
             # Load the Papers' Index.
