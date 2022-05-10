@@ -8,6 +8,7 @@ from os.path import join, isfile, isdir
 from papers import Papers
 from time_keeper import TimeKeeper
 
+
 class PapersAnalyzer:
     """
     Scans the CORD-19 papers to organize them by certain characteristics and
@@ -34,7 +35,7 @@ class PapersAnalyzer:
         # Check if the indexes for the small, medium, big papers were already
         # created.
         if (isfile(small_papers_path) and isfile(medium_papers_path)
-            and isfile(big_papers_path)):
+                and isfile(big_papers_path)):
             # Load the indexes.
             with open(small_papers_path, 'r') as file:
                 self.small_papers = json.load(file)
@@ -84,7 +85,7 @@ class PapersAnalyzer:
             paper_dict = {'cord_uid': paper_cord_uid, 'size': paper_size}
             if paper_size <= 300:
                 small_papers[paper_cord_uid] = paper_dict
-            elif paper_size <=3_000:
+            elif paper_size <= 3_000:
                 medium_papers[paper_cord_uid] = paper_dict
             else:
                 big_papers[paper_cord_uid] = paper_dict
@@ -210,12 +211,11 @@ if __name__ == '__main__':
         mkdir(testing_folder)
     # Extract 5 papers.
     paper_count = 0
-    for paper_content in analyzer.big_papers_content(5):
+    for paper_text in analyzer.big_papers_content(5):
         # Create Paper name.
         paper_count += 1
         paper_file = 'extracted_paper_' + str(paper_count) + '.txt'
         # Save the extracted paper.
         paper_path = join(testing_folder, paper_file)
-        with open(paper_path, 'w') as file:
-            print(paper_content, file=file)
-
+        with open(paper_path, 'w') as f:
+            print(paper_text, file=f)
