@@ -219,3 +219,6 @@ if __name__ == '__main__':
         paper_path = join(testing_folder, paper_file)
         with open(paper_path, 'w') as f:
             print(paper_text, file=f)
+    # Done with extracting the 5 Big Papers.
+    print("Done.")
+    print(f"[{stopwatch.formatted_runtime()}]\n")
