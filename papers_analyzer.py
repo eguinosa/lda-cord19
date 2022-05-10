@@ -199,10 +199,15 @@ if __name__ == '__main__':
     analyzer = PapersAnalyzer()
     print("Done.")
     print(f"[{stopwatch.formatted_runtime()}]")
-    
-    print(f"\nThe amount of Small Papers is: {big_number(len(analyzer.small_papers))}")
-    print(f"The amount of Medium Papers is: {big_number(len(analyzer.medium_papers))}")    
-    print(f"The amount of Big Papers is: {big_number(len(analyzer.big_papers))}")
+
+    small_count = len(analyzer.small_papers)
+    medium_count = len(analyzer.medium_papers)
+    big_count = len(analyzer.big_papers)
+    total_count = small_count + medium_count + big_count
+    print(f"\nThe total amount of Papers is: {big_number(total_count)}")
+    print(f"The amount of Small Papers is: {big_number(small_count)}")
+    print(f"The amount of Medium Papers is: {big_number(medium_count)}")
+    print(f"The amount of Big Papers is: {big_number(big_count)}")
 
     print("\nExtracting the content of 5 Big Papers...")
     # Check if the testing_data folder exists.
