@@ -5,6 +5,7 @@ venv-lda-cord19/
 cord19_data/
 # Project Data & Testing files:
 project_data/
+testing_data/
 output.txt
 
 # MacOS File System
