@@ -7,6 +7,7 @@ from os.path import join, isfile, isdir
 
 from papers import Papers
 from time_keeper import TimeKeeper
+from extra_funcs import big_number
 
 
 class PapersAnalyzer:
@@ -159,28 +160,6 @@ def papers_analysis():
     print(f"\n\nPapers of one paragraph or less: {big_number(small)}.")
     print(f"\nPapers of one page or less: {big_number(medium)}.")
     print(f"\nPapers bigger than a page: {big_number(big)}.")
-
-
-def big_number(number):
-    """
-    Add commas to number with more than 3 digits, so they are more easily read.
-    """
-    # Get the string of the number.
-    number_string = str(number)
-    
-    # Return its string if it's not big enough.
-    if len(number_string) <= 3:
-        return number_string
-    
-    # Add the commas.
-    new_string = number_string[-3:]
-    number_string = number_string[:-3]
-    while len(number_string) > 0:
-        new_string = number_string[-3:] + ',' + new_string
-        number_string = number_string[:-3]
-
-    # Return the reformatted string of the number.
-    return new_string
 
 
 # Test and check the sizes of the papers in CORD-19.
