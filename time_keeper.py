@@ -60,7 +60,6 @@ class TimeKeeper:
         
         # Return the updated runtime
         return self.runtime
-        
 
     def formatted_runtime(self):
         """
