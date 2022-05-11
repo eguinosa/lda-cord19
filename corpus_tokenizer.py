@@ -6,9 +6,9 @@ from os.path import isdir, isfile, join
 from gensim.models import Phrases
 
 from docs_tokenization import lazy_corpus_tokenization
-# For Testing
+from papers_analyzer import PapersAnalyzer
 from time_keeper import TimeKeeper
-from papers_analyzer import PapersAnalyzer, big_number
+from extra_funcs import big_number
 
 
 class CorpusTokenizer:
@@ -190,7 +190,7 @@ if __name__ == '__main__':
     print("Done.")
     print(f"[{stopwatch.formatted_runtime()}]")
 
-    # Reporting the amount of Papers available.
+    # Reporting the amount of Papers available by category.
     small_count = len(sorted_papers.small_papers)
     medium_count = len(sorted_papers.medium_papers)
     big_count = len(sorted_papers.big_papers)
