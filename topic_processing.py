@@ -1,6 +1,7 @@
 # Gelin Eguinosa Rosique
 
 import json
+import pickle
 from os import mkdir, listdir, remove
 from os.path import isdir, isfile, join
 from gensim import corpora
@@ -17,7 +18,7 @@ class TopicManager:
     dict_file = 'dictionary.dict'
     corpus_file = 'corpus_bow.mm'
     lda_folder = 'lda_models'
-    lda_index_file = 'index_lda_model.json'
+    lda_index_file = 'index_lda_model.pickle'
     lda_prefix = 'lda_model_'
     current_lda_file = 'current_lda_model'
 
@@ -54,8 +55,8 @@ class TopicManager:
                 raise Exception("The LDA Model Index of the TopicManager was not"
                                 " saved.")
             # Load the lda index:
-            with open(lda_index_path, 'r') as file:
-                self.lda_index = json.load(file)
+            with open(lda_index_path, 'rb') as file:
+                self.lda_index = pickle.load(file)
 
         # Create the TopicManager from scratch
         else:
@@ -89,8 +90,8 @@ class TopicManager:
             self.lda_index = {}
             lda_index_path = join(self.data_folder, self.lda_folder,
                                   self.lda_index_file)
-            with open(lda_index_path, 'w') as file:
-                json.dump(self.lda_index, file)
+            with open(lda_index_path, 'wb') as file:
+                pickle.dump(self.lda_index, file)
 
             # Delete all the LDA Models created from a previous TopicManager.
             lda_folder_path = join(self.data_folder, self.lda_folder)
@@ -178,8 +179,8 @@ class TopicManager:
             # Update the value of the Index of the LDA Model
             lda_index_path = join(self.data_folder, self.lda_folder,
                                   self.lda_index_file)
-            with open(lda_index_path, 'w') as file:
-                json.dump(self.lda_index, file)
+            with open(lda_index_path, 'wb') as file:
+                pickle.dump(self.lda_index, file)
 
             # Update the latest use LDA Model to use in Jupyter Notebook
             current_lda_path = join(self.data_folder, self.current_lda_file)
