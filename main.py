@@ -34,6 +34,8 @@ if __name__ == '__main__':
     # Get the 30,000 documents from the 'big' category.
     print("\nExtracting 30,000 Big Papers from CORD-19...")
     papers_text = sorted_papers.big_papers_content(30_000)
+    print("Done.")
+    print(f"[{stopwatch.formatted_runtime()}]")
 
     # Tokenize the Documents:.
     print("\nTokenizing the documents...")
