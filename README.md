@@ -33,7 +33,7 @@ Contiene la interface con la que interactúa el usuario, y donde se indica la ca
 
 De los 138,967 documentos contenidos dentro del CORD-19, 21,824 son documentos pequeños de menos de un párrafo, 55,579 contienen solo una página y 61,564 más de una página.
 
-##### LDA con 10 tópicos (topic coherence: )
+##### LDA con 10 tópicos (topic coherence: -0.9758)
 
 ##### LDA con 15 tópicos (topic coherence: -0.9769)
 
