@@ -1,6 +1,5 @@
 # Gelin Eguinosa Rosique
 
-import json
 import pickle
 from os import mkdir, listdir, remove
 from os.path import isdir, isfile, join
