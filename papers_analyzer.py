@@ -2,11 +2,9 @@
 
 import json
 from sys import stdout
-from os import mkdir
-from os.path import join, isfile, isdir
+from os.path import join, isfile
 
 from papers import Papers
-from time_keeper import TimeKeeper
 from extra_funcs import big_number
 
 
@@ -99,6 +97,9 @@ class PapersAnalyzer:
         Get the content of 'n' number of big papers in the CORD-19 database and
         return them in lazy form. If the value of 'n' is -1, then return the
         content of all the big papers available.
+        *** Papers with more than 1,000,000 characters are going to be ignore,
+        because of Spacy's models don't accept documents that large without
+        modifying their models.
 
         :return: An iterator of strings.
         """
@@ -114,8 +115,13 @@ class PapersAnalyzer:
             # Check if we have returned all the requested papers.
             if number == 0:
                 break
+            paper_text = self.cord19_papers.paper_full_text(cord_uid)
+            # Skip the text if it is to large for language processing.
+            if len(paper_text) > 1_000_000:
+                continue
+            # It has a proper size.
             number -= 1
-            yield self.cord19_papers.paper_full_text(cord_uid)
+            yield paper_text
 
 
 def papers_analysis():
@@ -162,47 +168,81 @@ def papers_analysis():
     print(f"\nPapers bigger than a page: {big_number(big)}.")
 
 
+def biggest_papers():
+    """
+    Get how many papers are bigger than 1,000,000 characters.
+    """
+    # Get the papers and the amount available in the current database.
+    the_papers = Papers()
+    total = len(the_papers.papers_index)
+    print(f"\nAmount of papers in CORD-19: {big_number(total)}.")
+
+    # Iteration variables.
+    biggest = 0
+    count = 0
+    step_progress = total // 40
+    # Iterate through the papers contents to see how many of each size we have.
+    print("\nAnalyzing the size of the papers...")
+    for paper_content in the_papers.all_papers_full_text():
+        # Update counter of papers viewed.
+        count += 1
+
+        # Print progress bar.
+        progress = count // step_progress
+        percentage = count * 100 // total
+        stdout.write('\r')
+        stdout.write("[%-40s] %03s%%" % ('=' * progress, percentage))
+        stdout.flush()
+
+        # Check the size of the paper.
+        if len(paper_content) > 1_000_000:
+            biggest += 1
+
+    print(f"\n\nPapers with more than 1,000,000 characters: {big_number(biggest)}.\n")
+
+
 # Test and check the sizes of the papers in CORD-19.
 if __name__ == '__main__':
-    # Record the Runtime of the Program
-    stopwatch = TimeKeeper()
-    
-    # print(big_number(123_456_789))
-    # print(big_number(23_456_789))
-    # print(big_number(3_456_789))
-    # print(big_number(89))
-
-    # papers_analysis()
-    
-    print("\nAnalizing the Paper sizes...")
-    analyzer = PapersAnalyzer()
-    print("Done.")
-    print(f"[{stopwatch.formatted_runtime()}]")
-
-    small_count = len(analyzer.small_papers)
-    medium_count = len(analyzer.medium_papers)
-    big_count = len(analyzer.big_papers)
-    total_count = small_count + medium_count + big_count
-    print(f"\nThe total amount of Papers is: {big_number(total_count)}")
-    print(f"The amount of Small Papers is: {big_number(small_count)}")
-    print(f"The amount of Medium Papers is: {big_number(medium_count)}")
-    print(f"The amount of Big Papers is: {big_number(big_count)}")
-
-    print("\nExtracting the content of 5 Big Papers...")
-    # Check if the testing_data folder exists.
-    testing_folder = 'testing_data'
-    if not isdir(testing_folder):
-        mkdir(testing_folder)
-    # Extract 5 papers.
-    paper_count = 0
-    for paper_text in analyzer.big_papers_content(5):
-        # Create Paper name.
-        paper_count += 1
-        paper_file = 'extracted_paper_' + str(paper_count) + '.txt'
-        # Save the extracted paper.
-        paper_path = join(testing_folder, paper_file)
-        with open(paper_path, 'w') as f:
-            print(paper_text, file=f)
-    # Done with extracting the 5 Big Papers.
-    print("Done.")
-    print(f"[{stopwatch.formatted_runtime()}]\n")
+    biggest_papers()
+    # # Record the Runtime of the Program
+    # stopwatch = TimeKeeper()
+    #
+    # # print(big_number(123_456_789))
+    # # print(big_number(23_456_789))
+    # # print(big_number(3_456_789))
+    # # print(big_number(89))
+    #
+    # # papers_analysis()
+    #
+    # print("\nAnalizing the Paper sizes...")
+    # analyzer = PapersAnalyzer()
+    # print("Done.")
+    # print(f"[{stopwatch.formatted_runtime()}]")
+    #
+    # small_count = len(analyzer.small_papers)
+    # medium_count = len(analyzer.medium_papers)
+    # big_count = len(analyzer.big_papers)
+    # total_count = small_count + medium_count + big_count
+    # print(f"\nThe total amount of Papers is: {big_number(total_count)}")
+    # print(f"The amount of Small Papers is: {big_number(small_count)}")
+    # print(f"The amount of Medium Papers is: {big_number(medium_count)}")
+    # print(f"The amount of Big Papers is: {big_number(big_count)}")
+    #
+    # print("\nExtracting the content of 5 Big Papers...")
+    # # Check if the testing_data folder exists.
+    # testing_folder = 'testing_data'
+    # if not isdir(testing_folder):
+    #     mkdir(testing_folder)
+    # # Extract 5 papers.
+    # paper_count = 0
+    # for paper_text in analyzer.big_papers_content(5):
+    #     # Create Paper name.
+    #     paper_count += 1
+    #     paper_file = 'extracted_paper_' + str(paper_count) + '.txt'
+    #     # Save the extracted paper.
+    #     paper_path = join(testing_folder, paper_file)
+    #     with open(paper_path, 'w') as f:
+    #         print(paper_text, file=f)
+    # # Done with extracting the 5 Big Papers.
+    # print("Done.")
+    # print(f"[{stopwatch.formatted_runtime()}]\n")
