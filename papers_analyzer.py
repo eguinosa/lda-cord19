@@ -141,19 +141,13 @@ def papers_analysis():
 
     # Iteration variables.
     count = 0
-    step_progress = total // 40
     # Iterate through the papers contents to see how many of each size we have.
     print("\nAnalyzing the size of the papers...")
     for paper_content in the_papers.all_papers_full_text():
         # Update counter of papers viewed.
         count += 1
-        
         # Print progress bar.
-        progress = count // step_progress
-        percentage = count * 100 // total
-        stdout.write('\r')
-        stdout.write("[%-40s] %03s%%" % ('=' * progress, percentage))
-        stdout.flush()
+        progress_bar(count, total)
 
         # Check the size of the paper.
         if len(paper_content) < 301:
@@ -180,19 +174,13 @@ def biggest_papers():
     # Iteration variables.
     biggest = 0
     count = 0
-    step_progress = total // 40
     # Iterate through the papers contents to see how many of each size we have.
     print("\nAnalyzing the size of the papers...")
     for paper_content in the_papers.all_papers_full_text():
         # Update counter of papers viewed.
         count += 1
-
         # Print progress bar.
-        progress = count // step_progress
-        percentage = count * 100 // total
-        stdout.write('\r')
-        stdout.write("[%-40s] %03s%%" % ('=' * progress, percentage))
-        stdout.flush()
+        progress_bar(count, total)
 
         # Check the size of the paper.
         if len(paper_content) > 1_000_000:
@@ -201,9 +189,26 @@ def biggest_papers():
     print(f"\n\nPapers with more than 1,000,000 characters: {big_number(biggest)}.\n")
 
 
+def progress_bar(progress, total):
+    """
+    Print on the console a bar representing the progress of the function that
+    called this method.
+    :progress: How many actions the program has already covered.
+    :total: The total amount of actions the program need to do.
+    """
+    # Values to print.
+    steps = progress * 40 // total
+    percentage = progress * 100 // total
+
+    # Print progress bar.
+    stdout.write('\r')
+    stdout.write("[%-40s] %03s%%" % ('=' * steps, percentage))
+    stdout.flush()
+
+
 # Test and check the sizes of the papers in CORD-19.
 if __name__ == '__main__':
-    biggest_papers()
+    papers_analysis()
     # # Record the Runtime of the Program
     # stopwatch = TimeKeeper()
     #
