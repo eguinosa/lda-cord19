@@ -1,17 +1,18 @@
 # Gelin Eguinosa Rosique
 
 import json
-from sys import stdout
-from os.path import join, isfile
+from os import mkdir
+from os.path import join, isfile, isdir
 
 from papers import Papers
-from extra_funcs import big_number
+from extra_funcs import progress_bar, big_number
+from time_keeper import TimeKeeper
 
 
 class PapersAnalyzer:
     """
     Scans the CORD-19 papers to organize them by certain characteristics and
-    and return subsets of the papers by these characteristics when required.
+    return subsets of the papers by these characteristics when required.
     """
     # Class Data Locations
     data_folder = 'project_data'
@@ -19,7 +20,7 @@ class PapersAnalyzer:
     medium_papers_index = 'medium_papers_index.json'
     big_papers_index = 'big_papers_index.json'
 
-    def __init__(self):
+    def __init__(self, show_progress=False):
         # Get the CORD-19 papers.
         self.cord19_papers = Papers()
         
@@ -42,9 +43,13 @@ class PapersAnalyzer:
                 self.medium_papers = json.load(file)
             with open(big_papers_path, 'r') as file:
                 self.big_papers = json.load(file)
+            # Show progress if required.
+            if show_progress:
+                total = len(self.cord19_papers.papers_index)
+                progress_bar(total, total)
         else:
             # Create the indexes.
-            indexes = self._organize_papers()
+            indexes = self._organize_papers(show_progress)
             # Get the Papers Indexes.
             self.small_papers = indexes[0]
             self.medium_papers = indexes[1]
@@ -57,7 +62,7 @@ class PapersAnalyzer:
             with open(big_papers_path, 'w') as file:
                 json.dump(self.big_papers, file)
 
-    def _organize_papers(self):
+    def _organize_papers(self, show_progress=False):
         """
         Scan the papers inside the CORD-19 database and creates 3 different
         indexes for them depending on their size:
@@ -73,6 +78,10 @@ class PapersAnalyzer:
         medium_papers = {}
         big_papers = {}
 
+        # Variables to display the function's progress.
+        total = len(self.cord19_papers.papers_index)
+        count = 0
+
         # Iterate through the papers in the CORD-19 database.
         for paper_cord_uid in self.cord19_papers.papers_index:
             # Get the content of the paper.
@@ -80,7 +89,7 @@ class PapersAnalyzer:
             # Get the size of the paper.
             paper_size = len(paper_content)
 
-            # Assing the paper to one of the indexes.
+            # Assign the paper to one of the indexes.
             paper_dict = {'cord_uid': paper_cord_uid, 'size': paper_size}
             if paper_size <= 300:
                 small_papers[paper_cord_uid] = paper_dict
@@ -88,16 +97,21 @@ class PapersAnalyzer:
                 medium_papers[paper_cord_uid] = paper_dict
             else:
                 big_papers[paper_cord_uid] = paper_dict
-        
+
+            # Show Progress if required.
+            count += 1
+            if show_progress:
+                progress_bar(count, total)
+
         # Return the indexes.
         return small_papers, medium_papers, big_papers
 
-    def big_papers_content(self, n=-1):
+    def big_papers_content(self, n=-1, show_progress=False):
         """
-        Get the content of 'n' number of big papers in the CORD-19 database and
+        Get the content of 'n' numbers of big papers in the CORD-19 database and
         return them in lazy form. If the value of 'n' is -1, then return the
         content of all the big papers available.
-        *** Papers with more than 1,000,000 characters are going to be ignore,
+        *** Papers with more than 1,000,000 characters are going to be ignored,
         because of Spacy's models don't accept documents that large without
         modifying their models.
 
@@ -105,23 +119,31 @@ class PapersAnalyzer:
         """
         # Find the number of papers we can return.
         if n < 0:
-            number = len(self.big_papers)
+            big_total = len(self.big_papers)
         else: 
-            number = min(n, len(self.big_papers))
-        
+            big_total = min(n, len(self.big_papers))
+
+        # To keep track of the iterations.
+        count = 0
         # Iterate through the first 'number' of big papers and return their
         # content.
         for cord_uid in self.big_papers:
             # Check if we have returned all the requested papers.
-            if number == 0:
+            if big_total == count:
                 break
-            paper_text = self.cord19_papers.paper_full_text(cord_uid)
-            # Skip the text if it is to large for language processing.
-            if len(paper_text) > 1_000_000:
+            # Load new paper.
+            paper_content = self.cord19_papers.paper_full_text(cord_uid)
+            # Skip the text if it's too large for language processing.
+            if len(paper_content) > 1_000_000:
                 continue
-            # It has a proper size.
-            number -= 1
-            yield paper_text
+
+            # Update counter and return the paper.
+            count += 1
+            yield paper_content
+
+            # Show Progress if required.
+            if show_progress:
+                progress_bar(count, big_total)
 
 
 def papers_analysis():
@@ -189,65 +211,40 @@ def biggest_papers():
     print(f"\n\nPapers with more than 1,000,000 characters: {big_number(biggest)}.\n")
 
 
-def progress_bar(progress, total):
-    """
-    Print on the console a bar representing the progress of the function that
-    called this method.
-    :progress: How many actions the program has already covered.
-    :total: The total amount of actions the program need to do.
-    """
-    # Values to print.
-    steps = progress * 40 // total
-    percentage = progress * 100 // total
-
-    # Print progress bar.
-    stdout.write('\r')
-    stdout.write("[%-40s] %03s%%" % ('=' * steps, percentage))
-    stdout.flush()
-
-
 # Test and check the sizes of the papers in CORD-19.
 if __name__ == '__main__':
-    papers_analysis()
-    # # Record the Runtime of the Program
-    # stopwatch = TimeKeeper()
-    #
-    # # print(big_number(123_456_789))
-    # # print(big_number(23_456_789))
-    # # print(big_number(3_456_789))
-    # # print(big_number(89))
-    #
-    # # papers_analysis()
-    #
-    # print("\nAnalizing the Paper sizes...")
-    # analyzer = PapersAnalyzer()
-    # print("Done.")
-    # print(f"[{stopwatch.formatted_runtime()}]")
-    #
-    # small_count = len(analyzer.small_papers)
-    # medium_count = len(analyzer.medium_papers)
-    # big_count = len(analyzer.big_papers)
-    # total_count = small_count + medium_count + big_count
-    # print(f"\nThe total amount of Papers is: {big_number(total_count)}")
-    # print(f"The amount of Small Papers is: {big_number(small_count)}")
-    # print(f"The amount of Medium Papers is: {big_number(medium_count)}")
-    # print(f"The amount of Big Papers is: {big_number(big_count)}")
-    #
-    # print("\nExtracting the content of 5 Big Papers...")
-    # # Check if the testing_data folder exists.
-    # testing_folder = 'testing_data'
-    # if not isdir(testing_folder):
-    #     mkdir(testing_folder)
-    # # Extract 5 papers.
-    # paper_count = 0
-    # for paper_text in analyzer.big_papers_content(5):
-    #     # Create Paper name.
-    #     paper_count += 1
-    #     paper_file = 'extracted_paper_' + str(paper_count) + '.txt'
-    #     # Save the extracted paper.
-    #     paper_path = join(testing_folder, paper_file)
-    #     with open(paper_path, 'w') as f:
-    #         print(paper_text, file=f)
-    # # Done with extracting the 5 Big Papers.
-    # print("Done.")
-    # print(f"[{stopwatch.formatted_runtime()}]\n")
+    # Record the Runtime of the Program
+    stopwatch = TimeKeeper()
+
+    print("\nAnalyzing the Paper sizes...")
+    analyzer = PapersAnalyzer(show_progress=True)
+    print("Done.")
+    print(f"[{stopwatch.formatted_runtime()}]")
+
+    small_count = len(analyzer.small_papers)
+    medium_count = len(analyzer.medium_papers)
+    big_count = len(analyzer.big_papers)
+    total_count = small_count + medium_count + big_count
+    print(f"\nThe total amount of Papers is: {big_number(total_count)}")
+    print(f"The amount of Small Papers is: {big_number(small_count)}")
+    print(f"The amount of Medium Papers is: {big_number(medium_count)}")
+    print(f"The amount of Big Papers is: {big_number(big_count)}")
+
+    print("\nExtracting the content of 5 Big Papers...")
+    # Check if the testing_data folder exists.
+    testing_folder = 'testing_data'
+    if not isdir(testing_folder):
+        mkdir(testing_folder)
+    # Extract 5 papers.
+    paper_count = 0
+    for paper_text in analyzer.big_papers_content(5, show_progress=True):
+        # Create Paper name.
+        paper_count += 1
+        paper_file = 'extracted_paper_' + str(paper_count) + '.txt'
+        # Save the extracted paper.
+        paper_path = join(testing_folder, paper_file)
+        with open(paper_path, 'w') as f:
+            print(paper_text, file=f)
+    # Done with extracting the 5 Big Papers.
+    print("Done.")
+    print(f"[{stopwatch.formatted_runtime()}]\n")
