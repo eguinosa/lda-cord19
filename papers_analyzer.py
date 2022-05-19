@@ -3,6 +3,7 @@
 import json
 from os import mkdir
 from os.path import join, isfile, isdir
+from random import sample
 
 from papers import Papers
 from extra_funcs import progress_bar, big_number
@@ -106,44 +107,158 @@ class PapersAnalyzer:
         # Return the indexes.
         return small_papers, medium_papers, big_papers
 
+    def small_papers_content(self, n=-1, show_progress=False):
+        """
+        Create a lazy sequence containing the texts of the first 'n' small
+        papers in the corpus. If 'n' is -1, then return the content of all the
+        small papers.
+        :param n: The amount of small papers to return.
+        :param show_progress: Bool representing whether we show the progress of
+        the function or not.
+        :return: A lazy sequence of strings.
+        """
+        return self._sized_papers_content('small', n, show_progress)
+
+    def medium_papers_content(self, n=-1, show_progress=False):
+        """
+        Create a lazy sequence containing the texts of 'n' medium papers in the
+        corpus. If 'n' is -1, return all the medium papers.
+        :param n: The amount of medium papers to return.
+        :param show_progress: Bool representing whether we show the progress of
+        the function or not.
+        :return: A lazy sequence of strings.
+        """
+        return self._sized_papers_content('medium', n, show_progress)
+
     def big_papers_content(self, n=-1, show_progress=False):
         """
-        Get the content of 'n' numbers of big papers in the CORD-19 database and
-        return them in lazy form. If the value of 'n' is -1, then return the
-        content of all the big papers available.
-        *** Papers with more than 1,000,000 characters are going to be ignored,
-        because of Spacy's models don't accept documents that large without
-        modifying their models.
-
-        :return: An iterator of strings.
+        Create a lazy sequence containing the texts of 'n' big papers from the
+        corpus. If 'n' is -1, then return all the big papers.
+        :param n: The amount of big papers to return.
+        :param show_progress: Bool representing whether we show the progress of
+        the function or not.
+        :return: A lazy sequence of strings.
         """
-        # Find the number of papers we can return.
+        return self._sized_papers_content('big', n, show_progress)
+
+    def random_small_papers(self, n=-1, show_progress=False):
+        """
+        Create a random sequence with the text of 'n' small papers. If 'n' is -1,
+        then return the content of all small papers in a random order.
+        :param n: The amount of small papers to return.
+        :param show_progress: Bool representing whether we show the progress of
+        the function or not.
+        :return: A lazy sequence of strings.
+        """
+        return self._random_papers_content('small', n, show_progress)
+
+    def random_medium_papers(self, n=-1, show_progress=False):
+        """
+        Create a random sequence with the text of 'n' medium papers. If 'n' is
+        -1, then return the content of all medium papers in a random order.
+        :param n: The amount of medium papers to return.
+        :param show_progress: Bool representing whether we show the progress of
+        the function or not.
+        :return: A lazy sequence of strings.
+        """
+        return self._random_papers_content('medium', n, show_progress)
+
+    def random_big_papers(self, n=-1, show_progress=False):
+        """
+        Create a random sequence with the text of 'n' big papers. If 'n' is -1,
+        then return the content of all big papers in a random order.
+        :param n: The amount of big papers to return.
+        :param show_progress: Bool representing whether we show the progress of
+        the function or not.
+        :return: A lazy sequence of strings.
+        """
+        return self._random_papers_content('big', n, show_progress)
+
+    def _sized_papers_content(self, papers_size, n=-1, show_progress=False):
+        """
+        Create a lazy sequence containing the texts of the type of papers
+        indicated by 'papers_size'. If 'n' is -1, then return the content of all
+        the papers with that size.
+        *** The papers are not selected randomly.
+        *** Papers with more than 1,000,000 characters are ignored (they have
+        conflicts with Spacy).
+        :param papers_size: A string containing 'small', 'medium' or 'big'.
+        :param n: The number of papers we need to return.
+        :param show_progress: Bool representing whether we show the progress of
+        the function or not.
+        :return: A lazy sequence of strings.
+        """
+        # Get index for the given size of papers.
+        if papers_size == 'small':
+            papers = list(self.small_papers)
+        elif papers_size == 'medium':
+            papers = list(self.medium_papers)
+        elif papers_size == 'big':
+            papers = list(self.big_papers)
+        else:
+            raise NameError("The type of papers is not specified.")
+
+        # The number of papers to return.
         if n < 0:
-            big_total = len(self.big_papers)
-        else: 
-            big_total = min(n, len(self.big_papers))
+            total = len(papers)
+        else:
+            total = min(n, len(papers))
 
-        # To keep track of the iterations.
+        # Progress iteration variable.
         count = 0
-        # Iterate through the first 'number' of big papers and return their
-        # content.
-        for cord_uid in self.big_papers:
-            # Check if we have returned all the requested papers.
-            if big_total == count:
-                break
-            # Load new paper.
+        # Return the first 'total' papers from the given type.
+        for cord_uid in papers[:total]:
+            # Load the papers' content.
             paper_content = self.cord19_papers.paper_full_text(cord_uid)
-            # Skip the text if it's too large for language processing.
-            if len(paper_content) > 1_000_000:
-                continue
-
-            # Update counter and return the paper.
-            count += 1
             yield paper_content
-
-            # Show Progress if required.
+            # Display the progress of the function.
             if show_progress:
-                progress_bar(count, big_total)
+                count += 1
+                progress_bar(count, total)
+
+    def _random_papers_content(self, papers_size, n=-1, show_progress=False):
+        """
+        Create a sequence with the text of ramdom papers selected from the given
+        paper size. If 'n' is -1, then we return all the available papers in a
+        random order.
+        *** Papers with more than 1,000,000 characters are ignored (they have
+        conflicts with Spacy).
+        :param papers_size: A string containing 'small', 'medium' or 'big'.
+        :param n: The number of papers we need to return.
+        :param show_progress: Bool representing whether we show the progress of
+        the function or not.
+        :return: A lazy sequence of strings.
+        """
+        # Get index for the given size of papers.
+        if papers_size == 'small':
+            papers = list(self.small_papers)
+        elif papers_size == 'medium':
+            papers = list(self.medium_papers)
+        elif papers_size == 'big':
+            papers = list(self.big_papers)
+        else:
+            raise NameError("The type of papers is not specified.")
+
+        # The number of papers to return.
+        if n < 0:
+            total = len(papers)
+        else:
+            total = min(n, len(papers))
+
+        # Get the papers in a random order.
+        random_papers = sample(papers, total)
+
+        # Iteration progress variable.
+        count = 0
+        # Iterate through the papers and return their content.
+        for cord_uid in random_papers:
+            # Load the papers' content.
+            paper_content = self.cord19_papers.paper_full_text(cord_uid)
+            yield paper_content
+            # Display the progress of the function.
+            if show_progress:
+                count += 1
+                progress_bar(count, total)
 
 
 def papers_analysis():
@@ -237,7 +352,7 @@ if __name__ == '__main__':
         mkdir(testing_folder)
     # Extract 5 papers.
     paper_count = 0
-    for paper_text in analyzer.big_papers_content(5, show_progress=True):
+    for paper_text in analyzer.random_big_papers(5, show_progress=True):
         # Create Paper name.
         paper_count += 1
         paper_file = 'extracted_paper_' + str(paper_count) + '.txt'
